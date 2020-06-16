@@ -23,6 +23,10 @@ class CoRBSPublisher : public rclcpp::Node
     }
 
   private:
+    rclcpp::TimerBase::SharedPtr _timer;
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr _depth_image_publisher;
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr _color_image_publisher;
+
     void timer_callback()
     {
       auto depth_image_message = sensor_msgs::msg::Image();
@@ -30,10 +34,6 @@ class CoRBSPublisher : public rclcpp::Node
       _depth_image_publisher->publish(depth_image_message);
       _color_image_publisher->publish(color_image_message);
     }
-    
-    rclcpp::TimerBase::SharedPtr _timer;
-    rclcpp::Publisher<std_msgs::msg::Image>::SharedPtr _depth_image_publisher;
-    rclcpp::Publisher<std_msgs::msg::Image>::SharedPtr _color_image_publisher;
   };
 
   int main(int argc, char * argv[])
