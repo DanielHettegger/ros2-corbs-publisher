@@ -18,9 +18,11 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(OpenCV REQUIRED )
 
 add_executable(ros2_corbs_publisher_node src/ros2_corbs_publisher_node.cpp)
-ament_target_dependencies(ros2_corbs_publisher_node rclcpp sensor_msgs)
+ament_target_dependencies(ros2_corbs_publisher_node rclcpp sensor_msgs cv_bridge OpenCV)
 target_include_directories(ros2_corbs_publisher_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
