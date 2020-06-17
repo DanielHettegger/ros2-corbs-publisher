@@ -142,7 +142,7 @@ class CoRBSPublisher : public rclcpp::Node
     {
       auto split = timestamp_string.find('.');
       msg.header.stamp.sec = std::stoi(timestamp_string.substr(0,split));
-      msg.header.stamp.nanosec = std::stoi(timestamp_string.substr(split+1,timestamp_string.length()));
+      msg.header.stamp.nanosec = std::stoi(timestamp_string.substr(split+1,timestamp_string.length())) * 1000;
     }
   };
 
