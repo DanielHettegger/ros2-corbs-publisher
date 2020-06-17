@@ -87,19 +87,17 @@ class CoRBSPublisher : public rclcpp::Node
         RCLCPP_INFO(this->get_logger(), "END OF STREAM REACHED");
         return;
       }
-
-
-      depth_map.convertTo(depth_map_reduced, CV_16SC1);
       color_map = cv::imread(color_filename);
 
       auto depth_image_message = std::make_unique<sensor_msgs::msg::Image>();
       auto color_image_message = std::make_unique<sensor_msgs::msg::Image>();
 
-      convert_frame_to_message(depth_map_reduced, *depth_image_message);
+      convert_frame_to_message(depth_map, *depth_image_message);
       convert_frame_to_message(color_map, *color_image_message);
-      
+
       add_timestamp_string_to_message(depth_time_stamp, *depth_image_message);
       add_timestamp_string_to_message(color_time_stamp, *color_image_message);
+      
       _depth_image_publisher->publish(std::move(depth_image_message));
       _color_image_publisher->publish(std::move(color_image_message));
     }
@@ -132,6 +130,8 @@ class CoRBSPublisher : public rclcpp::Node
           return "mono16";
         case CV_8UC4:
           return "rgba8";
+        case CV_32FC1:
+          return "32FC1";
         default:
           throw std::runtime_error("Unsupported encoding type");
       }
