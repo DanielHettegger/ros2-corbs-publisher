@@ -79,14 +79,16 @@ class CoRBSPublisher : public rclcpp::Node
       RCLCPP_DEBUG(this->get_logger(), debug_ss.str());
 
       cv::Mat_<float> depth_map;
-      cv::Mat depth_map_reduced;
       cv::Mat_<cv::Vec3b> color_map;
 
-      cv::imread(depth_filename, -1).convertTo(depth_map, CV_32FC1);
+      depth_map = cv::imread(depth_filename, CV_LOAD_IMAGE_ANYDEPTH);
       if(depth_map.empty()){
         RCLCPP_INFO(this->get_logger(), "END OF STREAM REACHED");
         return;
       }
+
+      depth_map *= 0.0002;
+      
       color_map = cv::imread(color_filename);
 
       auto depth_image_message = std::make_unique<sensor_msgs::msg::Image>();
