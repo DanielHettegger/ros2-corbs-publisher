@@ -16,5 +16,4 @@ Or just navigate to the data folder and run the node from there.
 
 ## Future Improvements
 * Use message timing instead of fixed 33ms delay
-* Publish timestamp in message
 * Add capability to download dataset

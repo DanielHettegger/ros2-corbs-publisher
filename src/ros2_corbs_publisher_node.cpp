@@ -98,6 +98,8 @@ class CoRBSPublisher : public rclcpp::Node
       convert_frame_to_message(depth_map_reduced, *depth_image_message);
       convert_frame_to_message(color_map, *color_image_message);
       
+      add_timestamp_string_to_message(depth_time_stamp, *depth_image_message);
+      add_timestamp_string_to_message(color_time_stamp, *color_image_message);
       _depth_image_publisher->publish(std::move(depth_image_message));
       _color_image_publisher->publish(std::move(color_image_message));
     }
@@ -133,6 +135,14 @@ class CoRBSPublisher : public rclcpp::Node
         default:
           throw std::runtime_error("Unsupported encoding type");
       }
+    }
+
+    void add_timestamp_string_to_message(
+      std::string timestamp_string, sensor_msgs::msg::Image & msg)
+    {
+      auto split = timestamp_string.find('.');
+      msg.header.stamp.sec = std::stoi(timestamp_string.substr(0,split));
+      msg.header.stamp.nanosec = std::stoi(timestamp_string.substr(split+1,timestamp_string.length()));
     }
   };
 
