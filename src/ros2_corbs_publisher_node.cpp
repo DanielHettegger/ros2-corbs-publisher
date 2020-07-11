@@ -115,7 +115,7 @@ class CoRBSPublisher : public rclcpp::Node
         return;
       }
 
-      depth_map *= 0.0002 * 1000;
+      depth_map *= 0.0002 * 1000.0;
       
       color_map = cv::imread(color_filename);
 
