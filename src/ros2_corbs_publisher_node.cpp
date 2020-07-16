@@ -42,15 +42,12 @@ class CoRBSPublisher : public rclcpp::Node
         throw std::runtime_error{"Trajectory file could not be read.."};
 
       std::string s;
-      for(int i = 0; i < 8; i++){
-        _depth_filenames_stream >> s;
-        _color_filenames_stream >> s;
+      for(int i = 0; i < 3; i++){
+        std::getline(_depth_filenames_stream,s);
+        std::getline(_color_filenames_stream,s);
+        std::getline(_trajectory_stream,s);
       }
 
-      for(int i = 0; i < 16; i++){
-        _trajectory_stream >> s;
-        RCLCPP_INFO(this->get_logger(), s);
-      }
       _timer = this->create_wall_timer(
         33ms, std::bind(&CoRBSPublisher::timer_callback, this));
     }
@@ -69,13 +66,8 @@ class CoRBSPublisher : public rclcpp::Node
     std::ifstream _color_filenames_stream;
     std::ifstream _trajectory_stream;
 
-    /*bool _once = false;
-    std::string depth_filename, color_filename, depth_time_stamp, color_time_stamp;*/
-
-
     void timer_callback()
     {
-      //if(!_once){
       std::string depth_filename, color_filename, depth_time_stamp, color_time_stamp;
       std::string tx, ty, tz, qx, qy, qz, qw, pose_timestamp;
       std::stringstream debug_ss;
@@ -83,9 +75,16 @@ class CoRBSPublisher : public rclcpp::Node
       _depth_filenames_stream >> depth_time_stamp >> depth_filename;
       _color_filenames_stream >> color_time_stamp >> color_filename;
 
-      do {
-        _trajectory_stream >> pose_timestamp >> tx >> ty >> tz >> qx >> qy >> qz >> qw;
-      } while(stod(depth_time_stamp) > stod(pose_timestamp));
+      try {
+
+        do {
+          _trajectory_stream >> pose_timestamp >> tx >> ty >> tz >> qx >> qy >> qz >> qw;
+        } while(stod(depth_time_stamp) > stod(pose_timestamp)); // Catch up pose to images
+      
+      } catch(std::invalid_argument e){
+        RCLCPP_INFO(this->get_logger(), "END OF POSE STREAM REACHED");
+        return;
+      }
 
       if(depth_filename.empty()){
         RCLCPP_INFO(this->get_logger(), "END OF STREAM REACHED");
@@ -100,14 +99,10 @@ class CoRBSPublisher : public rclcpp::Node
       debug_ss << depth_time_stamp << ": " << depth_filename << std::endl;
       debug_ss << color_time_stamp << ": " << color_filename << std::endl;
       debug_ss << pose_timestamp << ": " << tx << " " << ty << " " << tz << " " << qx << " " << qy << " " << qz << " " << qw << std::endl;
-      //debug_ss << (stod(depth_time_stamp) > stod(pose_timestamp) ? "depth > pose" : "depth < pose") << " " << stod(depth_time_stamp) - stod(pose_timestamp);
       RCLCPP_DEBUG(this->get_logger(), debug_ss.str());
-
-      //_once = true;}
 
       cv::Mat_<float> depth_map;
       cv::Mat_<cv::Vec3b> color_map;
-      //cv::Mat_<cv::Vec3b> color_map_resized;
 
       depth_map = cv::imread(depth_filename, CV_LOAD_IMAGE_ANYDEPTH);
       if(depth_map.empty()){
@@ -118,12 +113,6 @@ class CoRBSPublisher : public rclcpp::Node
       depth_map *= 0.0002 * 1000.0;
       
       color_map = cv::imread(color_filename);
-
-      //cv::resize(color_map, color_map_resized, cv::Size(depth_map.cols ,depth_map.rows), 0, 0, CV_INTER_LINEAR);
-
-      /*cv::imshow("depth_map", depth_map);
-      cv::imshow("color_map", color_map);
-      cv::waitKey(1);*/
 
       auto depth_image_message = std::make_unique<sensor_msgs::msg::Image>();
       auto color_image_message = std::make_unique<sensor_msgs::msg::Image>();
